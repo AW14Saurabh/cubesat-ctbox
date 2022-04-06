@@ -41,8 +41,7 @@ uint64_t txDt = 0;
 void requestEvent()
 {
     uSatAngTx.angles = satAngles;
-    for (int i = 0; i < NUM_ANGLES * SIZE_FLOAT; i ++)
-        Wire.write(uSatAngTx.b[i]);
+    Wire.write(uSatAngTx.b, NUM_ANGLES * SIZE_FLOAT);
 }
 
 void setup()
