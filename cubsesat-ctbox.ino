@@ -3,16 +3,16 @@
 #include <RF24.h>
 
 #define CTBOX 1
-#define ROLL_Y 2
-#define PITCH_Y 3
-#define YAW_Y 4
+#define ROLL_Y A0
+#define PITCH_Y A1
+#define YAW_Y A2
 #define LASER 5
 #define SATOP 6
 #define LED_D 7
 #define LED_P 8
 
-#define NRF_CE 14
-#define NRF_CS 15
+#define NRF_CE  9
+#define NRF_CS 10
 
 #define NUM_ANGLES 3
 #define SIZE_FLOAT 4
@@ -34,9 +34,9 @@ uint32_t yaw;
 messageData_t messageOut;
 uint8_t rxAddr[][6] = {"00001", "00002"};
 
-uint64_t prevTxMillis = 0;
-uint64_t currentMillis = 0;
-uint64_t txDt = 0;
+uint64_t prevTxMillis = 0ul;
+uint64_t currentMillis = 0ul;
+uint64_t txDt = 0ul;
 
 void requestEvent()
 {
