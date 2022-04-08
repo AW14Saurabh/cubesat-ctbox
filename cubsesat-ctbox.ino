@@ -66,14 +66,15 @@ void setup()
     pinMode(LED_P,  OUTPUT);
 
     satAngles = {0.0, 0.0, 0.0};
+    messageOut = {1, 1, {10, 20, 30}};
 }
 
 void loop()
 {
     currentMillis = millis();
     txDt = currentMillis - prevTxMillis;
-
-    /* Get all inputs from physical devices here and store it in messageOut*/
+    /*
+    // Get all inputs from physical devices here and store it in messageOut
     messageOut.laserEnable = digitalRead(LASER);
     messageOut.opMode = digitalRead(SATOP);
 
@@ -87,6 +88,14 @@ void loop()
     if (yaw > 1000) satAngles.z += 0.2;
     else if (yaw < 100) satAngles.z -= 0.2;
     messageOut.targetAngles = satAngles;
+    */
+    messageOut.targetAngles.x += 10;
+    messageOut.targetAngles.y += 10;
+    messageOut.targetAngles.z += 10;
+    if (messageOut.targetAngles.z > 100)
+    {
+        messageOut.targetAngles = {10,20,30};
+    }
 
     radio.stopListening();
     if (txDt >= MIN_TX_TIME)
@@ -98,4 +107,5 @@ void loop()
     radio.startListening();
     while(!radio.available());
     radio.read(&satAngles, sizeof(angRPYData_t));
+    Serial.println(satAngles.x);
 }
