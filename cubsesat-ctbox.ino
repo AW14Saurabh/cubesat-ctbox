@@ -3,16 +3,19 @@
 #include <RF24.h>
 
 #define CTBOX 1
+
 #define ROLL_Y A0
 #define PITCH_Y A1
 #define YAW_Y A2
-#define LASER 5
-#define SATOP 6
-#define LED_D 7
-#define LED_P 8
 
-#define NRF_CE  9
-#define NRF_CS 10
+#define LASER 5
+#define SAT_OP 4
+
+#define LED_D 3
+#define LED_P 2
+
+#define NRF_CS 9
+#define NRF_CE  10
 
 #define NUM_ANGLES 3
 #define SIZE_FLOAT 4
@@ -46,6 +49,8 @@ void requestEvent()
 
 void setup()
 {
+    Serial.begin(9600);
+
     Wire.begin(CTBOX);
     Wire.onRequest(requestEvent);
 
@@ -60,8 +65,8 @@ void setup()
     pinMode(ROLL_Y,  INPUT);
     pinMode(PITCH_Y, INPUT);
     pinMode(YAW_Y,   INPUT);
-    pinMode(LASER,   INPUT);
-    pinMode(SATOP,   INPUT);
+    pinMode(LASER,   INPUT_PULLUP);
+    pinMode(SAT_OP,   INPUT_PULLUP);
     pinMode(LED_D,  OUTPUT);
     pinMode(LED_P,  OUTPUT);
 
@@ -73,14 +78,22 @@ void loop()
 {
     currentMillis = millis();
     txDt = currentMillis - prevTxMillis;
-    /*
+
     // Get all inputs from physical devices here and store it in messageOut
     messageOut.laserEnable = digitalRead(LASER);
-    messageOut.opMode = digitalRead(SATOP);
+    messageOut.opMode = digitalRead(SAT_OP);
+
+    Serial.println(String("Laser: ") + String(messageOut.laserEnable ? "Off" : "On"));
+    Serial.println(String("Satellite Operation: ") + String(messageOut.opMode) + String(messageOut.opMode ? " Detumbling" : " Pointing"));
+    digitalWrite(LED_D, !messageOut.opMode);
+    digitalWrite(LED_P, messageOut.opMode);
 
     roll = analogRead(ROLL_Y);
     pitch = analogRead(PITCH_Y);
     yaw = analogRead(YAW_Y);
+
+    Serial.println("Roll: " + String(roll) + "\tPitch: " + String(pitch) + "\tYaw: " + String(yaw));
+
     if (roll > 1000) satAngles.x += 0.2;
     else if (roll < 100) satAngles.x -= 0.2;
     if (pitch > 1000) satAngles.y += 0.2;
@@ -88,14 +101,6 @@ void loop()
     if (yaw > 1000) satAngles.z += 0.2;
     else if (yaw < 100) satAngles.z -= 0.2;
     messageOut.targetAngles = satAngles;
-    */
-    messageOut.targetAngles.x += 10;
-    messageOut.targetAngles.y += 10;
-    messageOut.targetAngles.z += 10;
-    if (messageOut.targetAngles.z > 100)
-    {
-        messageOut.targetAngles = {10,20,30};
-    }
 
     radio.stopListening();
     if (txDt >= MIN_TX_TIME)
@@ -107,5 +112,5 @@ void loop()
     radio.startListening();
     while(!radio.available());
     radio.read(&satAngles, sizeof(angRPYData_t));
-    Serial.println(satAngles.x);
+    Serial.println("Sat Roll: " + String(satAngles.x) + "\tSat Pitch: " + String(satAngles.y) + "\tSat Yaw: " + String(satAngles.z));
 }
