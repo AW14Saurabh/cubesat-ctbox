@@ -1,5 +1,6 @@
 #include <Data.h>
 #include <Wire.h>
+#include<nRF24L01.h>
 #include <RF24.h>
 
 #define CTBOX 1
@@ -11,7 +12,6 @@
 #define LASER 5
 #define SAT_OP 4
 
-#define LED_D 3
 #define LED_P 2
 
 #define NRF_CS 9
@@ -35,7 +35,7 @@ uint32_t pitch;
 uint32_t yaw;
 
 messageData_t messageOut;
-uint8_t rxAddr[][6] = {"00001", "00002"};
+const uint8_t* rxAddr[2] {"00001", "00002"};
 
 uint64_t prevTxMillis = 0ul;
 uint64_t currentMillis = 0ul;
@@ -66,8 +66,7 @@ void setup()
     pinMode(PITCH_Y, INPUT);
     pinMode(YAW_Y,   INPUT);
     pinMode(LASER,   INPUT_PULLUP);
-    pinMode(SAT_OP,   INPUT_PULLUP);
-    pinMode(LED_D,  OUTPUT);
+    pinMode(SAT_OP,  INPUT_PULLUP);
     pinMode(LED_P,  OUTPUT);
 
     satAngles = {0.0, 0.0, 0.0};
@@ -80,12 +79,11 @@ void loop()
     txDt = currentMillis - prevTxMillis;
 
     // Get all inputs from physical devices here and store it in messageOut
-    messageOut.laserEnable = digitalRead(LASER);
+    messageOut.laserDisable = digitalRead(LASER);
     messageOut.opMode = digitalRead(SAT_OP);
 
-    Serial.println(String("Laser: ") + String(messageOut.laserEnable ? "Off" : "On"));
+    Serial.println(String("Laser: ") + String(messageOut.laserDisable ? "Off" : "On"));
     Serial.println(String("Satellite Operation: ") + String(messageOut.opMode) + String(messageOut.opMode ? " Detumbling" : " Pointing"));
-    digitalWrite(LED_D, !messageOut.opMode);
     digitalWrite(LED_P, messageOut.opMode);
 
     roll = analogRead(ROLL_Y);
@@ -98,8 +96,8 @@ void loop()
     else if (roll < 100) satAngles.x -= 0.2;
     if (pitch > 1000) satAngles.y += 0.2;
     else if (pitch < 100) satAngles.y -= 0.2;
-    if (yaw > 1000) satAngles.z += 0.2;
-    else if (yaw < 100) satAngles.z -= 0.2;
+    if (yaw > 1000) satAngles.z += 2.0;
+    else if (yaw < 100) satAngles.z -= 2.0;
     messageOut.targetAngles = satAngles;
 
     radio.stopListening();
